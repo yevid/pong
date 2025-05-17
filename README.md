@@ -1,2 +1,2 @@
 # pong
-The simple video game Pong written in PyGame.
+The simple video game Pong written in Pygame.
