@@ -1,32 +1,77 @@
-import sys, pygame
-from pygame.locals import *
+import pygame
 pygame.init()
 
-# Font to display text
-font = pygame.sysfont.SysFont('Arial', 20)
+# Window size
+WIDTH, HEIGHT = 900, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption('Pong')
 
 # Colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 
-# Set up the display
-WIDTH, HEIGHT = 900, 600
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption('Pong')
-# Lock the frame rate
-clock = pygame.time.Clock()
-FPS = 30
+# Paddle and ball
+PADDLE_W, PADDLE_H = 15, 100
+BALL_SIZE = 20
 
-# Quit the game
+left_paddle = pygame.Rect(30, HEIGHT//2 - PADDLE_H//2, PADDLE_W, PADDLE_H)
+right_paddle = pygame.Rect(WIDTH-45, HEIGHT//2 - PADDLE_H//2, PADDLE_W, PADDLE_H)
+ball = pygame.Rect(WIDTH//2 - BALL_SIZE//2, HEIGHT//2 - BALL_SIZE//2, BALL_SIZE, BALL_SIZE)
+
+ball_speed_x, ball_speed_y = 3, 3
+paddle_speed = 8
+
+clock = pygame.time.Clock()
 running = True
+
 while running:
     for event in pygame.event.get():
-        if event.type == QUIT:
+        if event.type == pygame.QUIT:
             running = False
 
-    screen.fill(BLACK)  # Fill the screen with black
-    pygame.display.flip()  # Update the display
-    clock.tick(FPS)  # Control the frame rate
-# Quit pygame
+    # Paddle movement
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_w] and left_paddle.top > 0:
+        left_paddle.y = left_paddle.y - paddle_speed
+    if keys[pygame.K_s] and left_paddle.bottom < HEIGHT:
+        left_paddle.y = left_paddle.y + paddle_speed
+    if keys[pygame.K_UP] and right_paddle.top > 0:
+        right_paddle.y = right_paddle.y - paddle_speed
+    if keys[pygame.K_DOWN] and right_paddle.bottom < HEIGHT:
+        right_paddle.y = right_paddle.y + paddle_speed
+
+    # Ball movement
+    ball.x = ball.x + ball_speed_x
+    ball.y = ball.y + ball_speed_y
+
+    # Ball collision with top/bottom
+    if ball.top <= 0:
+        ball.top = 0
+        ball_speed_y *= -1
+    if ball.bottom >= HEIGHT:
+        ball.bottom = HEIGHT
+        ball_speed_y *= -1
+
+    # Ball collision with paddles
+    if ball.colliderect(left_paddle) or ball.colliderect(right_paddle):
+        ball_speed_x = ball_speed_x * -1.01 # Increase speed on paddle hit
+        ball_speed_y = ball_speed_y * 1.01
+
+
+    # Ball reset if out of bounds
+    if ball.left <= 0 or ball.right >= WIDTH:
+        ball.center = (WIDTH//2, HEIGHT//2)
+        ball_speed_x, ball_speed_y = 3, 3
+
+    # Drawing
+    screen.fill(BLACK)
+    pygame.draw.rect(screen, RED, left_paddle)
+    pygame.draw.rect(screen, GREEN, right_paddle)
+    pygame.draw.ellipse(screen, BLUE, ball)
+    pygame.display.flip()
+    clock.tick(60)
+
 pygame.quit()
